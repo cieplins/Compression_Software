@@ -1,0 +1,31 @@
+This software (so far tested on Windows, python version 3.9, as of 19.10.2021):
+*detects scenes of a given video (saved in the same directory as the code)
+*splits video into those scenes
+*each scene is compressed
+*vmaf value is checked after the first compression
+*bitrate is increased/decreased until we obtain vmaf value +/-2 of our desired vmaf
+*after it is done for each scene, the scenes are put back into the full video
+
+
+Description of the functions:
+*find_scenes - detects scenes in the video; input: video path, returns: timecodes for scenes
+*compress - using ffmpeg performs 2-pass compression of the video; input: name of the output video (compressed), name of the input video (reference), bitrate value; returns: 0
+*check_vmaf - using ffmpeg_quality_metrics gets the stats, searches for average vmaf and saves the value; input: name of compressed video, name of reference video; returns: string with current vmaf score
+*add_br - adds 1k to the bitrate, compresses using new bitrate, checks current vmaf and prints it; input: name of compressed video, name of reference video, bitrate value; returns: float with current vmaf score
+*compress_scene - checks how much current vmaf differs from desired one, increases/decreases bitrate value accordingly; input: name of compressed video, name of reference video, bitrate value, desired vmaf value; returns:0
+
+
+Potentially to adjust:
+*in "find_scenes" downscale factor (frame is scaled by width and height, currently 1)
+*in "compress" preset setting (better quality with slowest setting, currently fast)
+*in "split_video_ffmpeg" preset setting + crf value (better quality with lower setting, currently 21)
+*in "compress_scene" change how much bitrate is increased/decreased
+*add a limit if vmaf is still too high but bitrate gets too low (should that happen?)
+
+For user to fill out:
+vmaf wanted, input name (without extensions), full video name, name of the video after it's fully compressed, could also change starting bitrate (br_init_k - string value with 'k', br_init - simply integer)
+
+For the software to run it is required to install libraries scenedeteck, ffmpeg, moviepy.editor, ffmpeg_quality_metrics and subprocess
+Ffmpeg should be available on the device.
+
+Together with the code three 1080p example videos are added which can be used to test the software.
