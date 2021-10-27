@@ -1,5 +1,4 @@
 import ffmpeg
-import ffmpy
 from scenedetect import video_splitter
 from scenedetect import VideoManager
 from scenedetect import SceneManager
@@ -54,6 +53,8 @@ def add_br(conv_video, ref_video, br0):
     vmaf_now = check_vmaf(conv_video, ref_video)
     print("this is vmaf_now")
     print(vmaf_now)
+    print("This is br_value")
+    print(br_value)
     vmaf_now_f = float(vmaf_now)
     return vmaf_now_f
 
@@ -68,59 +69,66 @@ def compress_scene(conv_video, ref_video, br_init_k, br_init, vmaf_wanted):
 #If current vmaf value is not your wanted one, increase bitrate and check again
 
     while vmaf_current_f <= (vmaf_wanted_i + 2):
-        if vmaf_current_f >= (vmaf_wanted_i - 2):
-            print("Done")
-            break
-        elif vmaf_current_f <= (vmaf_wanted_i - 30):
-            print("Vmaf too low (30)")
-            vmaf_current_f = add_br(conv_video, ref_video, br_init)
-            br_init += 200
-        elif vmaf_current_f <= (vmaf_wanted_i - 20):
-            print("Vmaf too low (20)")
-            vmaf_current_f = add_br(conv_video, ref_video, br_init)
-            br_init += 100
-        elif vmaf_current_f <= (vmaf_wanted_i - 10):
-            print("Vmaf too low (10)")
-            vmaf_current_f = add_br(conv_video, ref_video, br_init)
-            br_init += 50
+        if br_init >= 30:
+            if vmaf_current_f >= (vmaf_wanted_i - 2):
+                print("Done")
+                break
+            elif vmaf_current_f <= (vmaf_wanted_i - 30):
+                print("Vmaf too low (30)")
+                vmaf_current_f = add_br(conv_video, ref_video, br_init)
+                br_init += 200
+            elif vmaf_current_f <= (vmaf_wanted_i - 20):
+                print("Vmaf too low (20)")
+                vmaf_current_f = add_br(conv_video, ref_video, br_init)
+                br_init += 100
+            elif vmaf_current_f <= (vmaf_wanted_i - 10):
+                print("Vmaf too low (10)")
+                vmaf_current_f = add_br(conv_video, ref_video, br_init)
+                br_init += 50
+            else:
+                print("Vmaf too low")
+                vmaf_current_f = add_br(conv_video, ref_video, br_init)
+                br_init += 10
         else:
-            print("Vmaf too low")
-            vmaf_current_f = add_br(conv_video, ref_video, br_init)
-            br_init += 10
+            break
+
 
     while vmaf_current_f >= (vmaf_wanted_i - 2):
-        if vmaf_current_f <= (vmaf_wanted_i + 2):
-            print("Done")
-            break
-        elif vmaf_current_f >= (vmaf_wanted_i + 30):
-            print("Vmaf too high (30)")
-            vmaf_current_f = add_br(conv_video, ref_video, br_init)
-            br_init -= 200
-        elif vmaf_current_f >= (vmaf_wanted_i + 20):
-            print("Vmaf too high (20)")
-            vmaf_current_f = add_br(conv_video, ref_video, br_init)
-            br_init -= 100
-        elif vmaf_current_f >= (vmaf_wanted_i + 10):
-            print("Vmaf too high (10)")
-            vmaf_current_f = add_br(conv_video, ref_video, br_init)
-            br_init -= 50
+        if br_init >= 30:
+            if vmaf_current_f <= (vmaf_wanted_i + 2):
+                print("Done")
+                break
+            elif vmaf_current_f >= (vmaf_wanted_i + 30):
+                print("Vmaf too high (30)")
+                vmaf_current_f = add_br(conv_video, ref_video, br_init)
+                br_init -= 200
+            elif vmaf_current_f >= (vmaf_wanted_i + 20):
+                print("Vmaf too high (20)")
+                vmaf_current_f = add_br(conv_video, ref_video, br_init)
+                br_init -= 100
+            elif vmaf_current_f >= (vmaf_wanted_i + 10):
+                print("Vmaf too high (10)")
+                vmaf_current_f = add_br(conv_video, ref_video, br_init)
+                br_init -= 50
+            else:
+                print("Vmaf too high")
+                vmaf_current_f = add_br(conv_video, ref_video, br_init)
+                br_init -= 10
         else:
-            print("Vmaf too high")
-            vmaf_current_f = add_br(conv_video, ref_video, br_init)
-            br_init -= 10
+            break
 
 #Here put your initial values of bitrate and your wanted vmaf value
-br_init_k = '3000k'
-br_init = 2999
+br_init_k = '1000k'
+br_init = 999
 #This part is to be changed accordingly to needs
 vmaf_wanted = '60'
-input_name = 'tiger'
-full_video_name = "tiger.mp4"
-compressed_name = "tiger_compressed.mp4"
+input_name = 'you_1080'
+full_video_name = "you_1080.mp4"
+compressed_name = "you_1080_compressed.mp4"
 
 input_video_pth = [full_video_name]
 scenes = find_scenes(full_video_name)
-video_splitter.split_video_ffmpeg(input_video_pth, scenes, '$VIDEO_NAME_$SCENE_NUMBER.mp4', input_name, arg_override='-c:v libx264 -preset fast -crf 21 -c:a aac', hide_progress=False, suppress_output=False)
+video_splitter.split_video_ffmpeg(input_video_pth, scenes, 'you_1080_$SCENE_NUMBER.mp4', input_name, arg_override='-c:v libx264 -preset fast -crf 21 -c:a aac', hide_progress=False, suppress_output=False)
 
 vmaf_wanted_i = int(vmaf_wanted)
 scene_n = 1
