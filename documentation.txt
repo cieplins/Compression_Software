@@ -1,4 +1,4 @@
-This software (so far tested on Windows, python version 3.9, as of 19.10.2021):
+This software (so far tested on Windows, python version 3.9, as of 19.10.2021, on Mac OS as of 27.10.2021, python version 3.10):
 *detects scenes of a given video (saved in the same directory as the code)
 *splits video into those scenes
 *each scene is compressed
@@ -20,12 +20,12 @@ Potentially to adjust:
 *in "compress" preset setting (better quality with slowest setting, currently fast)
 *in "split_video_ffmpeg" preset setting + crf value (better quality with lower setting, currently 21)
 *in "compress_scene" change how much bitrate is increased/decreased
-*add a limit if vmaf is still too high but bitrate gets too low (should that happen?)
+*add a limit if vmaf is still too high but bitrate gets too low (should that happen?) -> done
 
 For user to fill out:
 vmaf wanted, input name (without extensions), full video name, name of the video after it's fully compressed, could also change starting bitrate (br_init_k - string value with 'k', br_init - simply integer)
 
-For the software to run it is required to install libraries scenedeteck, ffmpeg, moviepy.editor, ffmpeg_quality_metrics and subprocess
+For the software to run it is required to install libraries scenedetect, ffmpeg, moviepy, ffmpeg_quality_metrics and subprocess
 Ffmpeg should be available on the device.
 
 Together with the code three 1080p example videos are added which can be used to test the software.
