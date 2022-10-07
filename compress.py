@@ -8,13 +8,14 @@ import glob
 import os
 import shutil
 import logging
-import json
-import sys
+# import json
+# import sys
 
-#Content-aware scene detection:
+# Content-aware scene detection:
 from scenedetect.detectors import ContentDetector
 
-#Find scenes
+
+# Find scenes
 def find_scenes(video_path, threshold=30.0):
     # Create our video & scene managers, then add the detector.
     video_manager = VideoManager([video_path])
@@ -32,26 +33,31 @@ def find_scenes(video_path, threshold=30.0):
     # Each returned scene is a tuple of the (start, end) timecode.
     return scene_manager.get_scene_list()
 
-#if you want to use different output resolution you have to change it here:
+
+# if you want to use different output resolution you have to change it here:
 def compress_crf(conv_video, ref_video, crf_value, scale):
     p = subprocess.Popen(['ffmpeg', '-y', '-i', ref_video, '-vf', scale, '-sws_flags', 'bilinear', 'down.mp4'])
     p.wait()
-    p = subprocess.Popen(['ffmpeg', '-y', '-i', 'down.mp4', '-c:v', 'libx264',  '-preset', 'fast', '-crf', crf_value, '-c:a', 'copy', 'crf.mp4'])
+    p = subprocess.Popen(['ffmpeg', '-y', '-i', 'down.mp4', '-c:v', 'libx264', '-preset', 'fast', '-crf', crf_value,
+                          '-c:a', 'copy', 'crf.mp4'])
     p.wait()
-    p = subprocess.Popen(['ffmpeg', '-y', '-i', 'crf.mp4', '-vf', 'scale=1920x1080', '-sws_flags', 'bilinear', conv_video])
+    p = subprocess.Popen(['ffmpeg', '-y', '-i', 'crf.mp4', '-vf', 'scale=1920x1080', '-sws_flags', 'bilinear',
+                          conv_video])
     p.wait()
     return 0
 
+
 def write_json(new_data, filename):
-    with open(filename,'r+') as file:
-          # First we load existing data into a dict.
+    with open(filename, 'r+') as file:
+        # First we load existing data into a dict.
         file_data = json.load(file)
         # Join new_data with file_data inside emp_details
         file_data["content"].append(new_data)
         # Sets file's current position at offset.
         file.seek(0)
         # convert back to json.
-        json.dump(file_data, file, indent = 4)
+        json.dump(file_data, file, indent=4)
+
 
 my_input_dir = "files_to_compress"
 my_output_dir = "created_files"
@@ -61,7 +67,7 @@ working_dir = "{}/{}".format(path_parent, my_input_dir)
 results_dir = "{}/{}".format(path_parent, my_output_dir)
 
 os.chdir(working_dir)
-#if that's avi file convert it to mp4
+# if that's avi file convert it to mp4
 for file in glob.glob("*.avi"):
     os.chdir(working_dir)
     input_name = file[:len(file) - 4]
@@ -69,13 +75,15 @@ for file in glob.glob("*.avi"):
     video_mp4 = "{}.mp4".format(input_name)
     p = subprocess.Popen(['ffmpeg', '-y', '-i', avi_name, '-vcodec', 'libx264', video_mp4])
     p.wait()
-#for file in glob.glob("*.mp4"):
-    #new_name = "{}x{}.mp4".format(file[0:2], file[3:len(file)-4])
-    #p = subprocess.Popen(['ffmpeg', '-y', '-i', file, '-vcodec', 'libx264',  '-acodec', 'aac', '-vf', 'scale=1920x1080', '-sws_flags', 'bilinear', new_name])
-    #p.wait()
-    #p = subprocess.Popen(['rm', file])
-    #p.wait()
+# for file in glob.glob("*.mp4"):
+# new_name = "{}x{}.mp4".format(file[0:2], file[3:len(file)-4])
+# p = subprocess.Popen(['ffmpeg', '-y', '-i', file, '-vcodec', 'libx264',  '-acodec', 'aac', '-vf',
+#                       'scale=1920x1080', '-sws_flags', 'bilinear', new_name])
+# p.wait()
+# p = subprocess.Popen(['rm', file])
+# p.wait()
 for file in glob.glob("*.mp4"):
+    print(f'file = {file}')
     my_vmaf = int(file[0:2])
     if my_vmaf == 99:
         my_vmaf = 100
@@ -88,11 +96,8 @@ for file in glob.glob("*.mp4"):
     input_video_pth = [file]
     resolution = []
     with open(json_file_pth, 'w') as f:
-        jsondata = {}
-        jsondata['file_name'] = output_name
-        jsondata['vmaf'] = my_vmaf
-        jsondata['content'] = []
-        json.dump(jsondata, f, indent = 4)
+        jsondata = {'file_name': output_name, 'vmaf': my_vmaf, 'content': []}
+        json.dump(jsondata, f, indent=4)
     if my_vmaf == 100:
         list_crf = [16]
         resolution.append('scale=1920x1080')
@@ -162,14 +167,16 @@ for file in glob.glob("*.mp4"):
                 p.wait()
                 current_scene_path = "{}/{}".format(working_dir, current_scene_y4m)
                 current_scene_c_path = "{}/{}".format(working_dir, current_scene_c_y4m)
-                #os.chdir("/home/cieplins/vmaf")
-                command = "/home/cieplins/vmaf/libvmaf/build/tools/vmafossexec yuv420p 1920 1080 {} {} /home/cieplins/vmaf/model/vmaf_v0.6.1.json --log-fmt json --log myvmaf.json --thread 20 --phone-model".format(current_scene_path, current_scene_c_path)
+                # os.chdir("/home/cieplins/vmaf")
+                command = "/home/cieplins/vmaf/libvmaf/build/tools/vmafossexec yuv420p 1920 1080 {} {} " \
+                          "/home/cieplins/vmaf/model/vmaf_v0.6.1.json --log-fmt json --log myvmaf.json --thread 20 " \
+                          "--phone-model".format(current_scene_path, current_scene_c_path)
                 os.system(command)
                 with open('myvmaf.json') as f:
                     vmaf_for_scene = json.load(f)['pooled_metrics']['vmaf']['mean']
 
-               # os.chdir("/home/cieplins/Compression_Software/files_to_compress")
-                        
+                # os.chdir("/home/cieplins/Compression_Software/files_to_compress")
+
                 dict_crf_to_scene_vmaf[r, q].append(vmaf_for_scene)
                 dict_files_names[r, q].append(current_scene_c)
                 dict_crfs[r, q].append(list_crf[q])
@@ -217,7 +224,7 @@ for file in glob.glob("*.mp4"):
         print(picked_crf)
         print(picked_res)
         y = {"scene_number": sc,
-             "calculated_vmaf" : picked_vmaf,
+             "calculated_vmaf": picked_vmaf,
              "resolution": picked_res[6:len(str(picked_res))],
              "crf": picked_crf}
         write_json(y, json_file_pth)
@@ -227,7 +234,6 @@ for file in glob.glob("*.mp4"):
         clip_n = "clip{}".format(scene_number)
         clip_n = clip.subclip(0, duration)
         list_clips.append(clip_n)
-
 
     final = concatenate_videoclips(list_clips)
     try:
@@ -241,7 +247,8 @@ for file in glob.glob("*.mp4"):
         print("not saved")
     new_name = "vmaf{}_{}.mp4".format(file[0:2], file[3:len(file) - 4])
     p = subprocess.Popen(
-        ['ffmpeg', '-y', '-i', output_name, '-vcodec', 'libx264', '-acodec', 'aac', '-vf', 'scale=1920x1080', '-sws_flags',
+        ['ffmpeg', '-y', '-i', output_name, '-vcodec', 'libx264', '-acodec', 'aac', '-vf', 'scale=1920x1080',
+         '-sws_flags',
          'bilinear', new_name])
     p.wait()
     input_file = "{}/{}/{}".format(path_parent, my_input_dir, file)
@@ -251,8 +258,7 @@ for file in glob.glob("*.mp4"):
     for f in files_to_copy:
         shutil.copy(f, results_dir)
 
-#remove files from files_to_compress
+# remove files from files_to_compress
 
 for file in os.scandir(working_dir):
     os.remove(file.path)
-
